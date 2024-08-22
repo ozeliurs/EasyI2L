@@ -1,7 +1,6 @@
 import shutil
 import time
 import zipfile
-import logging
 from pathlib import Path
 
 import requests
@@ -9,9 +8,7 @@ import requests
 from easyi2l.config import db_folder, IP2LOCATION_URL, IP2LOCATION_TOKEN
 from easyi2l.db import EasyI2LDB
 from easyi2l.db_type import DBType
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from easyi2l.logger import logging
 
 
 class EasyI2L:
@@ -23,7 +20,8 @@ class EasyI2L:
                 (db_folder / database_code["file"]).is_file() and
                 (db_folder / f"{database_code['file']}.timestamp").exists() and
                 (db_folder / f"{database_code['file']}.timestamp").is_file() and
-                (time.time() - float((db_folder / f"{database_code['file']}.timestamp").read_text()) < 30 * 24 * 60 * 60)
+                (time.time() - float(
+                    (db_folder / f"{database_code['file']}.timestamp").read_text()) < 30 * 24 * 60 * 60)
         ):
             logging.info(f"Using existing {database_code['file']}")
             return EasyI2LDB(database_code["file"])
@@ -32,6 +30,10 @@ class EasyI2L:
                 (db_folder / database_code["file"]).unlink()
             if (db_folder / f"{database_code['file']}.timestamp").exists():
                 (db_folder / f"{database_code['file']}.timestamp").unlink()
+
+        if not IP2LOCATION_TOKEN:
+            logging.error("Please provide IP2LOCATION_TOKEN environment variable")
+            raise ValueError("Please provide IP2LOCATION_TOKEN environment variable")
 
         url = IP2LOCATION_URL.format(TOKEN=IP2LOCATION_TOKEN, DATABASE_CODE=database_code["code"])
         response = requests.get(url, stream=True)
