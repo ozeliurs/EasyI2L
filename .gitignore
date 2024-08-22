@@ -1,0 +1,9 @@
+# Dev
+.venv/
+IP2LOCATION
+
+# Build
+dist/
+
+# JetBrains IDE
+.idea/
