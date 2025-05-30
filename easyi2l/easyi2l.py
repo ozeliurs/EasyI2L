@@ -13,7 +13,7 @@ from easyi2l.logger import logging
 
 class EasyI2L:
     @staticmethod
-    def download(database_code: DBType) -> EasyI2LDB:
+    def download(database_code: DBType, api_key: str = None) -> EasyI2LDB:
         # If the file already exists and is a file and is not older than 30 days, return the file
         if (
                 (db_folder / database_code["file"]).exists() and
@@ -31,11 +31,13 @@ class EasyI2L:
             if (db_folder / f"{database_code['file']}.timestamp").exists():
                 (db_folder / f"{database_code['file']}.timestamp").unlink()
 
-        if not IP2LOCATION_TOKEN:
-            logging.error("Please provide IP2LOCATION_TOKEN environment variable")
-            raise ValueError("Please provide IP2LOCATION_TOKEN environment variable")
+        # Use provided api_key if given, otherwise fallback to config
+        token = api_key if api_key is not None else IP2LOCATION_TOKEN
+        if not token:
+            logging.error("Please provide IP2LOCATION_TOKEN as a parameter or set the environment variable")
+            raise ValueError("Please provide IP2LOCATION_TOKEN as a parameter or set the environment variable")
 
-        url = IP2LOCATION_URL.format(TOKEN=IP2LOCATION_TOKEN, DATABASE_CODE=database_code["code"])
+        url = IP2LOCATION_URL.format(TOKEN=token, DATABASE_CODE=database_code["code"])
         response = requests.get(url, stream=True)
 
         # Check if the response is a zip file
