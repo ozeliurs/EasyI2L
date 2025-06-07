@@ -4,14 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "easyi2l"
-version = "0.0.6"
+version = "0.0.7"
 authors = [
   { name="Ozeliurs", email="ozeliurs@gmail.com" },
 ]
 dependencies = [
     "requests",
     "IP2Location",
-    "python-dotenv"
+    "python-dotenv",
+    "tqdm"
 ]
 description = "A better way to use IP2Location in Python"
 readme = "README.md"
