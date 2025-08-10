@@ -13,23 +13,26 @@ from easyi2l.logger import logging
 
 class EasyI2L:
     @staticmethod
-    def download(database_code: DBType, api_key: str = None) -> EasyI2LDB:
+    def download(database_code: DBType, api_key: str = None, folder: Path = None) -> EasyI2LDB:
+        download_folder = Path(folder) if folder else db_folder
+        download_folder.mkdir(parents=True, exist_ok=True)
+
         # If the file already exists and is a file and is not older than 30 days, return the file
         if (
-                (db_folder / database_code["file"]).exists() and
-                (db_folder / database_code["file"]).is_file() and
-                (db_folder / f"{database_code['file']}.timestamp").exists() and
-                (db_folder / f"{database_code['file']}.timestamp").is_file() and
+                (download_folder / database_code["file"]).exists() and
+                (download_folder / database_code["file"]).is_file() and
+                (download_folder / f"{database_code['file']}.timestamp").exists() and
+                (download_folder / f"{database_code['file']}.timestamp").is_file() and
                 (time.time() - float(
-                    (db_folder / f"{database_code['file']}.timestamp").read_text()) < 30 * 24 * 60 * 60)
+                    (download_folder / f"{database_code['file']}.timestamp").read_text()) < 30 * 24 * 60 * 60)
         ):
             logging.info(f"Using existing {database_code['file']}")
-            return EasyI2LDB(database_code["file"])
+            return EasyI2LDB(database_code["file"], download_folder)
         else:
-            if (db_folder / database_code["file"]).exists():
-                (db_folder / database_code["file"]).unlink()
-            if (db_folder / f"{database_code['file']}.timestamp").exists():
-                (db_folder / f"{database_code['file']}.timestamp").unlink()
+            if (download_folder / database_code["file"]).exists():
+                (download_folder / database_code["file"]).unlink()
+            if (download_folder / f"{database_code['file']}.timestamp").exists():
+                (download_folder / f"{database_code['file']}.timestamp").unlink()
 
         # Use provided api_key if given, otherwise fallback to config
         token = api_key if api_key is not None else IP2LOCATION_TOKEN
@@ -64,11 +67,11 @@ class EasyI2L:
                         logging.info(f"Extracted {file_info.filename}")
 
                         extracted_file = Path(file_info.filename)
-                        shutil.move(str(extracted_file), str(db_folder / extracted_file.name))
-                        logging.info(f"Moved {extracted_file.name} to {db_folder}")
+                        shutil.move(str(extracted_file), str(download_folder / extracted_file.name))
+                        logging.info(f"Moved {extracted_file.name} to {download_folder}")
 
                         # Create timestamp file
-                        Path(db_folder / f"{extracted_file.name}.timestamp").write_text(str(time.time()))
+                        Path(download_folder / f"{extracted_file.name}.timestamp").write_text(str(time.time()))
 
             logging.info(f"Downloaded and extracted {database_code['code']}.zip")
             Path(f"{database_code['code']}.zip").unlink()
@@ -77,4 +80,4 @@ class EasyI2L:
             raise ValueError(
                 f"Failed to download {database_code['code']}.zip\n\tUrl: {url}\n\tCode: {response.status_code}")
 
-        return EasyI2LDB(database_code['file'])
+        return EasyI2LDB(database_code['file'], download_folder)

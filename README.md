@@ -25,10 +25,16 @@ Before using the package, ensure you have the `IP2LOCATION_TOKEN` environment va
 Here's a simple example of how to use `easyi2l`:
 
 ```python
+from pathlib import Path
+
 from easyi2l import EasyI2L, DBType
 
 
+# Download to the default folder
 db = EasyI2L.download(DBType.DB11LITEBIN).load()
+
+# Or specify a custom download folder
+# db = EasyI2L.download(DBType.DB11LITEBIN, folder=Path("./ipdb")).load()
 
 # Retrieve all data for an IP address
 print(db.get_all("1.1.1.1"))
